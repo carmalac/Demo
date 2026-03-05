@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clasificador de Demos Odoo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .module-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .module-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .module-item input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .module-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 0.95em;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            position: relative;
+        }
+
+        .option-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .option-item label {
+            display: block;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: normal;
+        }
+
+        .option-item input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option-item label:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .result-card.basic {
+            background: #d4edda;
+            border: 3px solid #28a745;
+        }
+
+        .result-card.mid {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+        }
+
+        .result-card.advanced {
+            background: #f8d7da;
+            border: 3px solid #dc3545;
+        }
+
+        .result-title {
+            font-size: 2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .result-message {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .result-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .result-details h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .result-details p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Clasificador de Demos Odoo</h1>
+            <p>Determina quién debe realizar la demostración</p>
+        </div>
+
+        <div class="content">
+            <!-- SECCIÓN 1: Configuración inicial -->
+            <div class="section active" id="section1">
+                <h2 style="margin-bottom: 25px; color: #667eea;">Configuración de la Demo</h2>
+
+                <div class="form-group">
+                    <label>Selecciona los módulos de interés:</label>
+                    <div class="modules-grid" id="modulesGrid"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tamaño de la empresa:</label>
+                    <select id="companySize">
+                        <option value="">Selecciona una opción</option>
+                        <option value="small">Pequeña (1-50 empleados)</option>
+                        <option value="medium">Mediana (51-250 empleados)</option>
+                        <option value="large">Grande (251+ empleados)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Nivel de digitalización actual:</label>
+                    <select id="digitalLevel">
+                        <option value="">Selecciona una opción</option>
+                        <option value="basic">Básico (Excel, procesos manuales)</option>
+                        <option value="mid">Intermedio (Software específico por área)</option>
+                        <option value="advanced">Avanzado (ERP actual, integraciones)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Complejidad de procesos:</label>
+                    <select id="processComplexity">
+                        <option value="">Selecciona una opción</option>
+                        <option value="simple">Simple (Procesos lineales)</option>
+                        <option value="moderate">Moderado (Múltiples áreas coordinadas)</option>
+                        <option value="complex">Complejo (Alta integración, automatización)</option>
+                    </select>
+                </div>
+
+                <div id="error1" class="error-message" style="display: none;"></div>
+
+                <div class="button-container">
+                    <button class="btn btn-primary" onclick="goToQuestions()">Siguiente →</button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Preguntas -->
+            <div class="section" id="section2">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                </div>
+
+                <h2 style="margin-bottom: 25px; color: #667eea;">Preguntas de Evaluación</h2>
+                <p style="margin-bottom: 30px; color: #666;">Responde las siguientes preguntas para determinar el nivel de complejidad de la demo.</p>
+
+                <div id="questionsContainer"></div>
+
+                <div id="error2" class="error-message" style="display: none;"></div>
+
+                <div class="button-container">
+                    <button class="btn btn-secondary" onclick="backToConfig()">← Regresar</button>
+                    <button class="btn btn-primary" onclick="calculateResult()">Ver Resultado</button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Resultados -->
+            <div class="section" id="section3">
+                <h2 style="margin-bottom: 25px; color: #667eea;">Resultado de la Evaluación</h2>
+                <div id="resultContainer"></div>
+
+                <div class="button-container">
+                    <button class="btn btn-secondary" onclick="restart()">🔄 Nueva Evaluación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos
+        const modules = [
+            "Configuración general", "CRM", "Ventas", "Compras", "Inventario",
+            "Fabricación", "Facturación", "Contabilidad", "Gastos", "Encuestas",
+            "Eventos", "Marketing social", "Marketing por correo",
+            "Automatización de marketing", "Reclutamiento", "Empleados",
+            "Asistencia", "Tiempo personal", "Documentos", "Proyecto",
+            "Planeación", "Hojas de horas", "Taller", "Calidad",
+            "Punto de venta", "Servicio de asistencia"
+        ];
+
+        const allQuestions = [
+            { id: 1, question: "Cuando algo no coincide con lo planeado, lo más valioso para ti suele ser:", options: [
+                { text: "Detectarlo rápidamente y corregirlo", level: "BASIC" },
+                { text: "Entender en qué parte del proceso ocurrió", level: "MID" },
+                { text: "Prevenir que vuelva a suceder ajustando reglas", level: "ADV" }
+            ]},
+            { id: 2, question: "La información ideal dentro de la empresa debería:", options: [
+                { text: "Estar disponible cuando alguien la necesite", level: "BASIC" },
+                { text: "Fluir entre áreas relacionadas sin duplicarse", level: "MID" },
+                { text: "Activar acciones automáticas entre procesos", level: "ADV" }
+            ]},
+            { id: 3, question: "Cuando revisas resultados, normalmente te enfocas en:", options: [
+                { text: "Totales y estatus generales", level: "BASIC" },
+                { text: "Comparaciones por periodo o responsable", level: "MID" },
+                { text: "Indicadores que conectan varias áreas", level: "ADV" }
+            ]},
+            { id: 4, question: "Ante tareas repetitivas, suele ser suficiente con:", options: [
+                { text: "Que el equipo siga un mismo procedimiento", level: "BASIC" },
+                { text: "Reducir pasos manuales", level: "MID" },
+                { text: "Eliminar la intervención humana", level: "ADV" }
+            ]},
+            { id: 5, question: "Cuando piensas en controles internos, valoras más:", options: [
+                { text: "Que todos conozcan las reglas", level: "BASIC" },
+                { text: "Que existan validaciones en puntos clave", level: "MID" },
+                { text: "Que las reglas se adapten según el contexto", level: "ADV" }
+            ]},
+            { id: 6, question: "Cuando el negocio cambia, el sistema ideal debería:", options: [
+                { text: "Permitir ajustes simples", level: "BASIC" },
+                { text: "Adaptarse con nuevas configuraciones", level: "MID" },
+                { text: "Escalar sin rediseñar procesos", level: "ADV" }
+            ]},
+            { id: 7, question: "En el seguimiento diario, te resulta más útil:", options: [
+                { text: "Saber qué está pendiente", level: "BASIC" },
+                { text: "Conocer dependencias entre tareas", level: "MID" },
+                { text: "Tener trazabilidad completa del ciclo", level: "ADV" }
+            ]},
+            { id: 8, question: "La automatización, para ti, sirve principalmente para:", options: [
+                { text: "Reducir errores", level: "BASIC" },
+                { text: "Ahorrar tiempo entre áreas", level: "MID" },
+                { text: "Optimizar decisiones", level: "ADV" }
+            ]},
+            { id: 9, question: "Al incorporar nuevos usuarios, prefieres un sistema que:", options: [
+                { text: "Sea intuitivo", level: "BASIC" },
+                { text: "Guíe al usuario según el proceso", level: "MID" },
+                { text: "Se adapte al rol y contexto", level: "ADV" }
+            ]},
+            { id: 10, question: "Respecto al crecimiento, hoy es más importante:", options: [
+                { text: "Ordenar lo actual", level: "BASIC" },
+                { text: "Soportar mayor volumen", level: "MID" },
+                { text: "Coordinar procesos complejos", level: "ADV" }
+            ]},
+            { id: 11, question: "Cuando varias áreas usan la misma información:", options: [
+                { text: "Cada una la consulta por separado", level: "BASIC" },
+                { text: "Se actualiza automáticamente", level: "MID" },
+                { text: "Se gobierna por reglas transversales", level: "ADV" }
+            ]},
+            { id: 12, question: "Un error humano suele resolverse mejor cuando:", options: [
+                { text: "Se detecta rápido", level: "BASIC" },
+                { text: "Se limita su impacto", level: "MID" },
+                { text: "El sistema lo previene", level: "ADV" }
+            ]},
+            { id: 13, question: "Al hablar de eficiencia, normalmente piensas en:", options: [
+                { text: "Hacer lo mismo en menos tiempo", level: "BASIC" },
+                { text: "Reducir pasos innecesarios", level: "MID" },
+                { text: "Rediseñar el flujo completo", level: "ADV" }
+            ]},
+            { id: 14, question: "Cuando hay excepciones en un proceso:", options: [
+                { text: "Se resuelven caso por caso", level: "BASIC" },
+                { text: "Existen reglas para algunos escenarios", level: "MID" },
+                { text: "El sistema decide según múltiples variables", level: "ADV" }
+            ]},
+            { id: 15, question: "Para tomar decisiones, hoy confías más en:", options: [
+                { text: "La experiencia del equipo", level: "BASIC" },
+                { text: "Datos históricos", level: "MID" },
+                { text: "Indicadores en tiempo real", level: "ADV" }
+            ]},
+            { id: 16, question: "Cuando una tarea depende de otra:", options: [
+                { text: "Se coordina manualmente", level: "BASIC" },
+                { text: "El sistema avisa o bloquea", level: "MID" },
+                { text: "El sistema la encadena automáticamente", level: "ADV" }
+            ]},
+            { id: 17, question: "Al revisar desempeño, te interesa más:", options: [
+                { text: "Cumplimiento general", level: "BASIC" },
+                { text: "Comparar áreas o periodos", level: "MID" },
+                { text: "Detectar patrones y causas", level: "ADV" }
+            ]},
+            { id: 18, question: "Cuando algo falla fuera de horario:", options: [
+                { text: "Se atiende al día siguiente", level: "BASIC" },
+                { text: "Se genera una alerta", level: "MID" },
+                { text: "Se ejecutan acciones automáticas", level: "ADV" }
+            ]},
+            { id: 19, question: "Respecto a la información histórica:", options: [
+                { text: "Solo se consulta ocasionalmente", level: "BASIC" },
+                { text: "Se usa para análisis periódicos", level: "MID" },
+                { text: "Alimenta decisiones futuras", level: "ADV" }
+            ]},
+            { id: 20, question: "Un proceso ideal para ti es aquel que:", options: [
+                { text: "Es claro y entendible", level: "BASIC" },
+                { text: "Es consistente y medible", level: "MID" },
+                { text: "Es adaptable y optimizable", level: "ADV" }
+            ]},
+            { id: 21, question: "Cuando hay retrabajos, lo más relevante es:", options: [
+                { text: "Corregirlos rápido", level: "BASIC" },
+                { text: "Reducir su frecuencia", level: "MID" },
+                { text: "Eliminar su causa raíz", level: "ADV" }
+            ]},
+            { id: 22, question: "Al definir responsabilidades:", options: [
+                { text: "Cada área sabe qué le toca", level: "BASIC" },
+                { text: "Existen flujos entre áreas", level: "MID" },
+                { text: "Los roles gobiernan el proceso", level: "ADV" }
+            ]},
+            { id: 23, question: "Cuando el volumen aumenta:", options: [
+                { text: "Se refuerza el equipo", level: "BASIC" },
+                { text: "Se optimizan procesos", level: "MID" },
+                { text: "Se rediseña la operación", level: "ADV" }
+            ]},
+            { id: 24, question: "Para ti, la visibilidad significa:", options: [
+                { text: "Saber qué está pasando", level: "BASIC" },
+                { text: "Saber por qué pasa", level: "MID" },
+                { text: "Saber qué pasará después", level: "ADV" }
+            ]},
+            { id: 25, question: "Un buen sistema debería ayudarte a:", options: [
+                { text: "Registrar operaciones", level: "BASIC" },
+                { text: "Coordinar procesos", level: "MID" },
+                { text: "Orquestar decisiones", level: "ADV" }
+            ]},
+            { id: 26, question: "Cuando hay muchos usuarios:", options: [
+                { text: "Todos usan el mismo flujo", level: "BASIC" },
+                { text: "Existen variaciones controladas", level: "MID" },
+                { text: "El flujo depende del rol y contexto", level: "ADV" }
+            ]},
+            { id: 27, question: "En cuanto a aprobaciones:", options: [
+                { text: "Se hacen manualmente", level: "BASIC" },
+                { text: "Dependen de montos o casos", level: "MID" },
+                { text: "Se disparan por múltiples reglas", level: "ADV" }
+            ]},
+            { id: 28, question: "Cuando analizas un problema, sueles mirar:", options: [
+                { text: "El resultado final", level: "BASIC" },
+                { text: "Los pasos previos", level: "MID" },
+                { text: "El sistema completo", level: "ADV" }
+            ]},
+            { id: 29, question: "Respecto a los datos:", options: [
+                { text: "Es suficiente que estén correctos", level: "BASIC" },
+                { text: "Deben estar relacionados", level: "MID" },
+                { text: "Deben generar valor predictivo", level: "ADV" }
+            ]},
+            { id: 30, question: "Cuando algo se retrasa:", options: [
+                { text: "Se reasigna manualmente", level: "BASIC" },
+                { text: "Se notifica a los involucrados", level: "MID" },
+                { text: "Se reconfigura el flujo", level: "ADV" }
+            ]},
+            { id: 31, question: "La estandarización para ti sirve para:", options: [
+                { text: "Evitar confusión", level: "BASIC" },
+                { text: "Asegurar consistencia", level: "MID" },
+                { text: "Escalar operaciones", level: "ADV" }
+            ]},
+            { id: 32, question: "Cuando una regla deja de funcionar:", options: [
+                { text: "Se ajusta manualmente", level: "BASIC" },
+                { text: "Se revisa el proceso", level: "MID" },
+                { text: "Se redefine la lógica", level: "ADV" }
+            ]},
+            { id: 33, question: "Un indicador útil para ti es aquel que:", options: [
+                { text: "Muestra el estado actual", level: "BASIC" },
+                { text: "Permite comparaciones", level: "MID" },
+                { text: "Anticipa escenarios", level: "ADV" }
+            ]},
+            { id: 34, question: "Cuando piensas en control:", options: [
+                { text: "Piensas en supervisión", level: "BASIC" },
+                { text: "Piensas en validaciones", level: "MID" },
+                { text: "Piensas en gobierno del proceso", level: "ADV" }
+            ]},
+            { id: 35, question: "Para ti, la integración ideal es:", options: [
+                { text: "Compartir información", level: "BASIC" },
+                { text: "Sincronizar procesos", level: "MID" },
+                { text: "Coordinar decisiones", level: "ADV" }
+            ]},
+            { id: 36, question: "Cuando un proceso crece en complejidad:", options: [
+                { text: "Se documenta mejor", level: "BASIC" },
+                { text: "Se divide en etapas", level: "MID" },
+                { text: "Se modela como sistema", level: "ADV" }
+            ]},
+            { id: 37, question: "En cuanto a flexibilidad:", options: [
+                { text: "No romper lo que funciona", level: "BASIC" },
+                { text: "Permitir ajustes controlados", level: "MID" },
+                { text: "Adaptarse dinámicamente", level: "ADV" }
+            ]},
+            { id: 38, question: "Cuando delegas tareas:", options: [
+                { text: "Das instrucciones claras", level: "BASIC" },
+                { text: "Definen responsables y tiempos", level: "MID" },
+                { text: "El sistema asigna automáticamente", level: "ADV" }
+            ]},
+            { id: 39, question: "Respecto a los procesos críticos:", options: [
+                { text: "Se supervisan más", level: "BASIC" },
+                { text: "Tienen controles adicionales", level: "MID" },
+                { text: "Están completamente automatizados", level: "ADV" }
+            ]},
+            { id: 40, question: "Cuando algo sale del flujo normal:", options: [
+                { text: "Se atiende manualmente", level: "BASIC" },
+                { text: "Se activa un protocolo", level: "MID" },
+                { text: "El sistema se adapta", level: "ADV" }
+            ]},
+            { id: 41, question: "Para ti, la eficiencia real se logra cuando:", options: [
+                { text: "Hay menos errores", level: "BASIC" },
+                { text: "Hay menos retrabajo", level: "MID" },
+                { text: "Hay mejora continua", level: "ADV" }
+            ]},
+            { id: 42, question: "Un buen flujo de trabajo debería:", options: [
+                { text: "Ser fácil de seguir", level: "BASIC" },
+                { text: "Ser consistente", level: "MID" },
+                { text: "Ser optimizable", level: "ADV" }
+            ]},
+            { id: 43, question: "Cuando revisas operaciones pasadas:", options: [
+                { text: "Buscas errores", level: "BASIC" },
+                { text: "Buscas oportunidades", level: "MID" },
+                { text: "Buscas patrones", level: "ADV" }
+            ]},
+            { id: 44, question: "Al pensar en el futuro, hoy te preocupa más:", options: [
+                { text: "Mantener el control", level: "BASIC" },
+                { text: "Soportar crecimiento", level: "MID" },
+                { text: "Escalar complejidad", level: "ADV" }
+            ]},
+            { id: 45, question: "Cuando se define una regla nueva:", options: [
+                { text: "Se comunica al equipo", level: "BASIC" },
+                { text: "Se configura en el sistema", level: "MID" },
+                { text: "Se integra al modelo operativo", level: "ADV" }
+            ]},
+            { id: 46, question: "Para ti, el éxito de un sistema es que:", options: [
+                { text: "Funcione correctamente", level: "BASIC" },
+                { text: "Acompañe al negocio", level: "MID" },
+                { text: "Impulse la estrategia", level: "ADV" }
+            ]},
+            { id: 47, question: "Cuando piensas en escalabilidad:", options: [
+                { text: "Piensas en volumen", level: "BASIC" },
+                { text: "Piensas en procesos", level: "MID" },
+                { text: "Piensas en arquitectura", level: "ADV" }
+            ]},
+            { id: 48, question: "En tu operación ideal:", options: [
+                { text: "Las personas controlan el sistema", level: "BASIC" },
+                { text: "El sistema apoya a las personas", level: "MID" },
+                { text: "El sistema orquesta la operación", level: "ADV" }
+            ]},
+            { id: 49, question: "Cuando algo funciona bien:", options: [
+                { text: "Se mantiene igual", level: "BASIC" },
+                { text: "Se replica", level: "MID" },
+                { text: "Se optimiza continuamente", level: "ADV" }
+            ]},
+            { id: 50, question: "Para ti, el valor de la tecnología está en:", options: [
+                { text: "Ordenar la operación", level: "BASIC" },
+                { text: "Conectar procesos", level: "MID" },
+                { text: "Transformar la forma de operar", level: "ADV" }
+            ]}
+        ];
+
+        let selectedQuestions = [];
+        let userAnswers = {};
+
+        // Generar módulos
+        function generateModules() {
+            const grid = document.getElementById('modulesGrid');
+            modules.forEach((module, idx) => {
+                const div = document.createElement('div');
+                div.className = 'module-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="module_${idx}" value="${module}">
+                    <label for="module_${idx}">${module}</label>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Ir a preguntas
+        function goToQuestions() {
+            const companySize = document.getElementById('companySize').value;
+            const digitalLevel = document.getElementById('digitalLevel').value;
+            const processComplexity = document.getElementById('processComplexity').value;
+            const selectedModules = Array.from(document.querySelectorAll('#modulesGrid input:checked')).map(cb => cb.value);
+
+            const error = document.getElementById('error1');
+
+            if (selectedModules.length === 0) {
+                error.textContent = '⚠️ Selecciona al menos un módulo';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (!companySize || !digitalLevel || !processComplexity) {
+                error.textContent = '⚠️ Completa todos los campos de configuración';
+                error.style.display = 'block';
+                return;
+            }
+
+            error.style.display = 'none';
+
+            // Seleccionar 5 preguntas aleatorias
+            const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            selectedQuestions = shuffled.slice(0, 5);
+
+            generateQuestions();
+
+            document.getElementById('section1').classList.remove('active');
+            document.getElementById('section2').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Generar preguntas
+        function generateQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            selectedQuestions.forEach((q, idx) => {
+                // Desordenar opciones
+                const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <div class="question-number">Pregunta ${idx + 1} de 5</div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="options">
+                        ${shuffledOptions.map((opt, optIdx) => `
+                            <div class="option-item">
+                                <input type="radio" name="q${q.id}" value="${opt.level}" id="q${q.id}_${optIdx}" onchange="updateProgress()">
+                                <label for="q${q.id}_${optIdx}">${opt.text}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            const answered = selectedQuestions.filter(q => 
+                document.querySelector(`input[name="q${q.id}"]:checked`)
+            ).length;
+            const progress = (answered / selectedQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Calcular resultado
+        function calculateResult() {
+            userAnswers = {};
+            let allAnswered = true;
+
+            selectedQuestions.forEach(q => {
+                const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+                if (!selected) {
+                    allAnswered = false;
+                } else {
+                    userAnswers[q.id] = selected.value;
+                }
+            });
+
+            const error = document.getElementById('error2');
+
+            if (!allAnswered) {
+                error.textContent = '⚠️ Por favor responde todas las preguntas';
+                error.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            error.style.display = 'none';
+
+            // Contar respuestas
+            const counts = { BASIC: 0, MID: 0, ADV: 0 };
+            Object.values(userAnswers).forEach(level => {
+                counts[level]++;
+            });
+
+            // Determinar nivel
+            let finalLevel, levelName, resultClass, responsible, message, details;
+
+            if (counts.ADV >= 3) {
+                finalLevel = 'ADV';
+                levelName = 'AVANZADA';
+                resultClass = 'advanced';
+                responsible = '👨‍💼 Equipo Analista';
+                message = 'Esta demo requiere conocimientos técnicos avanzados y debe ser atendida por el equipo de analistas.';
+                details = `
+                    <h4>📋 Información Adicional Requerida:</h4>
+                    <p>• Detalle de integraciones necesarias</p>
+                    <p>• Flujos de automatización específicos</p>
+                    <p>• Requisitos de personalización avanzada</p>
+                    <p>• Volumen de transacciones y usuarios</p>
+                    <p>• Arquitectura de sistema actual</p>
+                `;
+            } else if (counts.MID >= 3 || (counts.MID >= 2 && counts.ADV >= 1)) {
+                finalLevel = 'MID';
+                levelName = 'MEDIA';
+                resultClass = 'mid';
+                responsible = '👤 Agente de Cuentas';
+                message = 'Esta demo puede ser atendida por el agente de cuentas con soporte del equipo analista si es necesario.';
+                details = `
+                    <h4>✅ El agente puede manejar:</h4>
+                    <p>• Configuraciones estándar de módulos</p>
+                    <p>• Flujos de trabajo moderados</p>
+                    <p>• Reportes y consultas intermedias</p>
+                    <p>• Integraciones básicas</p>
+                `;
+            } else {
+                finalLevel = 'BASIC';
+                levelName = 'BÁSICA';
+                resultClass = 'basic';
+                responsible = '👤 Agente de Cuentas';
+                message = 'Esta demo es básica y puede ser atendida completamente por el agente de cuentas.';
+                details = `
+                    <h4>✅ Demo incluye:</h4>
+                    <p>• Navegación general del sistema</p>
+                    <p>• Funcionalidades estándar</p>
+                    <p>• Configuraciones básicas</p>
+                    <p>• Reportes predefinidos</p>
+                `;
+            }
+
+            // Obtener módulos seleccionados
+            const selectedModules = Array.from(document.querySelectorAll('#modulesGrid input:checked'))
+                .map(cb => cb.value).join(', ');
+
+            const companySize = document.getElementById('companySize').selectedOptions[0].text;
+            const digitalLevel = document.getElementById('digitalLevel').selectedOptions[0].text;
+            const processComplexity = document.getElementById('processComplexity').selectedOptions[0].text;
+
+            // Mostrar resultado
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = `
+                <div class="result-card ${resultClass}">
+                    <div class="result-title">${levelName}</div>
+                    <div class="result-message">
+                        <strong>Responsable:</strong> ${responsible}<br><br>
+                        ${message}
+                    </div>
+                </div>
+
+                <div class="result-details">
+                    <h4>📊 Resumen de la Evaluación:</h4>
+                    <p><strong>Módulos seleccionados:</strong> ${selectedModules}</p>
+                    <p><strong>Tamaño de empresa:</strong> ${companySize}</p>
+                    <p><strong>Nivel de digitalización:</strong> ${digitalLevel}</p>
+                    <p><strong>Complejidad de procesos:</strong> ${processComplexity}</p>
+                    <br>
+                    <p><strong>Distribución de respuestas:</strong></p>
+                    <p>• Básicas: ${counts.BASIC}</p>
+                    <p>• Medias: ${counts.MID}</p>
+                    <p>• Avanzadas: ${counts.ADV}</p>
+                </div>
+
+                <div class="result-details">
+                    ${details}
+                </div>
+            `;
+
+            document.getElementById('section2').classList.remove('active');
+            document.getElementById('section3').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Navegación
+        function backToConfig() {
+            document.getElementById('section2').classList.remove('active');
+            document.getElementById('section1').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function restart() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('companySize').selectedIndex = 0;
+            document.getElementById('digitalLevel').selectedIndex = 0;
+            document.getElementById('processComplexity').selectedIndex = 0;
+            selectedQuestions = [];
+            userAnswers = {};
+            document.getElementById('progressBar').style.width = '0%';
+
+            document.getElementById('section3').classList.remove('active');
+            document.getElementById('section1').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Inicializar
+        generateModules();
+    </script>
+</body>
+</html>
